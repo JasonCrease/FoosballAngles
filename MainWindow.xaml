@@ -1,8 +1,11 @@
 ﻿<Window x:Class="FoosballAngles.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="MainWindow" Height="350" Width="525">
+        Title="Foosball Angles" Height="500" Width="800" ResizeMode="NoResize">
     <Grid>
-        
+        <StackPanel>
+            <Image Name="img" Height="375" Width="750"></Image>
+            <Button Name="button1" Content="Go" Click="button1_Click" Width="100" FontSize="20"/>
+        </StackPanel>
     </Grid>
 </Window>

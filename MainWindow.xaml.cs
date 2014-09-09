@@ -12,17 +12,42 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Runtime.InteropServices;
+using System.Drawing;
 
 namespace FoosballAngles
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
         public MainWindow()
         {
             InitializeComponent();
+        }
+
+        private void button1_Click(object sender, RoutedEventArgs e)
+        {
+            Engine2 engine = new Engine2();
+            engine.Go();
+            img.Source = BitmapSourceConvert.ToBitmapSource(engine.Bitmap);
+        }
+    }
+    public static class BitmapSourceConvert
+    {
+        [DllImport("gdi32")]
+        private static extern int DeleteObject(IntPtr o);
+
+        public static BitmapSource ToBitmapSource(Bitmap bitmap)
+        {
+            IntPtr ptr = bitmap.GetHbitmap();
+
+            BitmapSource bs = System.Windows.Interop.Imaging.CreateBitmapSourceFromHBitmap(
+                ptr,
+                IntPtr.Zero,
+                Int32Rect.Empty,
+                System.Windows.Media.Imaging.BitmapSizeOptions.FromEmptyOptions());
+
+            DeleteObject(ptr);
+            return bs;
         }
     }
 }
