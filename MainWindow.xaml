@@ -4,8 +4,11 @@
         Title="Foosball Angles" Height="500" Width="800" ResizeMode="NoResize">
     <Grid>
         <StackPanel>
-            <Image Name="img" Height="375" Width="750"></Image>
-            <Button Name="button1" Content="Go" Click="button1_Click" Width="100" FontSize="20"/>
+            <Image Name="img" Height="375" Width="750" Margin="10,10,10,10"></Image>
+            <StackPanel Orientation="Horizontal">
+                <Button Name="button1" Content="Go" Click="button1_Click" Width="100" FontSize="20"  Margin="10,10,10,10"/>
+                <Label Name="labelScore" Content="xxx" Width="100" FontSize="20" Margin="10,10,10,10"/>
+            </StackPanel>
         </StackPanel>
     </Grid>
 </Window>

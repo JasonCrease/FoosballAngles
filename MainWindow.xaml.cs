@@ -26,9 +26,10 @@ namespace FoosballAngles
 
         private void button1_Click(object sender, RoutedEventArgs e)
         {
-            Engine2 engine = new Engine2();
-            engine.Go();
-            img.Source = BitmapSourceConvert.ToBitmapSource(engine.Bitmap);
+            Engine engine = new Engine();
+            engine.ScorePath();
+            img.Source = BitmapSourceConvert.ToBitmapSource(engine.Bmp);
+            labelScore.Content = engine.Score;
         }
     }
     public static class BitmapSourceConvert
