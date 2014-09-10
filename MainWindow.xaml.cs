@@ -27,7 +27,7 @@ namespace FoosballAngles
         private void button1_Click(object sender, RoutedEventArgs e)
         {
             Engine engine = new Engine();
-            engine.ScorePath();
+            engine.FindOptimalPolePositions();
             img.Source = BitmapSourceConvert.ToBitmapSource(engine.Bmp);
             labelScore.Content = engine.Score;
         }

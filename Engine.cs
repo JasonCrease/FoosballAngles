@@ -3,12 +3,23 @@ using System.CodeDom;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Controls.Primitives;
 using System.Windows.Interop;
 
 namespace FoosballAngles
 {
+    class PolePosition
+    {
+        public float PosGoalie { get; set; }
+        public float PosDefence { get; set; }
+        public float PosMidfield { get; set; }
+        public float PosAttack { get; set; }
+        public int Score { get; set; }
+    }
+
     class Engine
     {
         // Measurements are from top left of table, from perspective of shooting 2-bar
@@ -19,70 +30,114 @@ namespace FoosballAngles
         private float[] pYs;
 
         // All numbers in real measured mm
-        private const float TableLength = 750;
-        private const float TableWidth = 375;
-        private const float GoalWidth = 100;
-        private const float PlayerWidth = 23;
-        private const float PlayerDepth = 8;
-        private const float BallWidth = 16f;
+        private const float TableLength = 1205;
+        private const float TableWidth = 705;
+        private const float GoalWidth = 200;
+        private const float PlayerWidth = 25;
+        private const float PlayerDepth = 10;
+        private const float BallWidth = 33f;
         private int m_Score = 0;
+
+        Graphics m_Graphics;
 
         public int Score
         {
             get { return m_Score; }
         }
         Brush greenBrush = new SolidBrush(Color.DarkGreen);
-        Brush yellowBrush = new SolidBrush(Color.Yellow);
-        Brush BisqueBrush = new SolidBrush(Color.Red);
+        Brush yellowBrush = new SolidBrush(Color.Goldenrod);
+        Brush BisqueBrush = new SolidBrush(Color.Tomato);
         Brush goalBrush = new SolidBrush(Color.BlueViolet);
 
         public Bitmap Bmp { get; private set; }
 
         public Engine()
         {
-            pXs = new float[] { 200, 200, 200,  // attack
-                350, 350, 350, 350, 350,        // midfield
-                500, 500,                       // defence
-                650                             //keeper
-            };
-
-            pYs = new float[] { 100, 200, 300,  // attack
-                100, 150, 200, 250, 300,        // midfield
-                100, 300,                       // defence
-                200                             //keeper
-            };
-
+            ResetPlayers();
             if (pXs.Length != pYs.Length) throw new ApplicationException();
             pNum = pXs.Length;
         }
 
-        public void ScorePath()
+        private void ResetPlayers()
         {
-            float startX = 50f;
-            float endX = TableLength;
+            pXs = new float[] { 380, 380, 380,  // attack
+                680, 680, 680, 680, 680,        // midfield
+                980, 980,                       // defence
+                1130                             //keeper
+            };
 
+            pYs = new float[] { 50, 250, 450,  // attack
+                50, 170, 290, 410, 530,        // midfield
+                50, 290,                       // defence
+                220                             //keeper
+            };
+        }
+
+        public void FindOptimalPolePositions()
+        {
             Bmp = new Bitmap((int)TableLength, (int)TableWidth);
             m_Graphics = Graphics.FromImage(Bmp);
 
             RenderPitch();
 
-            for (float startY = 50; startY < TableWidth - 50; startY += 1f)
+            List<PolePosition> polePositions = new List<PolePosition>();
+            Random r = new Random();
+
+            for (int i = 0; i < 200; i++)
             {
-                for (float endY = (TableWidth - GoalWidth) / 2f; endY < (TableWidth + GoalWidth) / 2f; endY += 1f)
-                {
-                    bool pathClear = IsPathClear(startX, startY, endX, endY);
-                    if (pathClear)
-                    {
-                        m_Graphics.DrawLine(new Pen(yellowBrush), startX, startY, endX - 8, endY);
-                        m_Score++;
-                    }
-                }
+                PolePosition pp = new PolePosition();
+                pp.PosAttack += (float)(r.NextDouble() * 250);
+                pp.PosMidfield += (float)(r.NextDouble() * 200);
+                pp.PosDefence += (float)(r.NextDouble() * 300);
+                pp.PosGoalie += (float)(r.NextDouble() * 250);
+
+                polePositions.Add(pp);
+                pp.Score = ScorePath(pp, false);
             }
+
+            PolePosition bestPos = polePositions.OrderBy(x => x.Score).First();
+            m_Score = ScorePath(bestPos, true);
 
             RenderPlayers();
         }
 
-        Graphics m_Graphics;
+        public int ScorePath(PolePosition pp, bool draw)
+        {
+            float startX = 220f;
+            float endX = TableLength;
+            float yStepSize = 3f;
+
+            int score = 0;
+
+            if (draw)
+                yStepSize = 1f;
+
+            ResetPlayers();
+
+            for (int i = 0; i < 3; i++)
+                pYs[i] += pp.PosAttack;
+            for (int i = 3; i < 8; i++)
+                pYs[i] += pp.PosMidfield;
+            for (int i = 8; i < 10; i++)
+                pYs[i] += pp.PosDefence;
+            pYs[10] += pp.PosGoalie;
+    
+            for (float startY = 30; startY < TableWidth / 2f; startY += yStepSize)
+            {
+                for (float endY = (TableWidth - GoalWidth) / 2f; endY < (TableWidth + GoalWidth) / 2f; endY += yStepSize)
+                {
+                    bool pathClear = IsPathClear(startX, startY, endX, endY);
+                    if (pathClear)
+                    {
+                        if(draw)
+                        m_Graphics.DrawLine(new Pen(yellowBrush), startX, startY, endX - 8, endY);
+                        score++;
+                    }
+                }
+            }
+
+            return score;
+        }
 
         private void RenderPitch()
         {
@@ -113,7 +168,7 @@ namespace FoosballAngles
 
         private bool DoesRayHitAnyPlayers(float startX, float startY, float endX, float endY)
         {
-            const float xStepSize = 0.5f;
+            const float xStepSize = 2f;
             float gradient = (endY - startY) / (endX - startX);
             float y = startY;
 
