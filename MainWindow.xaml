@@ -1,7 +1,7 @@
 ﻿<Window x:Class="FoosballAngles.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Foosball Angles" Height="500" Width="800" ResizeMode="NoResize">
+        Title="Foosball Angles" Height="500" Width="800" ResizeMode="CanMinimize">
     <Grid>
         <StackPanel>
             <Image Name="img" Height="352" Width="602" Margin="10,10,10,10"></Image>

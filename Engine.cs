@@ -30,12 +30,13 @@ namespace FoosballAngles
         private float[] pYs;
 
         // All numbers in real measured mm
-        private const float TableLength = 1205;
-        private const float TableWidth = 705;
-        private const float GoalWidth = 200;
-        private const float PlayerWidth = 25;
+        private const float TableLength = 1200;
+        private const float TableWidth = 700;
+        private const float GoalWidth = 202;
+        private const float PlayerWidth = 20;
         private const float PlayerDepth = 10;
         private const float BallWidth = 33f;
+        private float BallGoInWidth = (BallWidth) / 2;
         private int m_Score = 0;
 
         Graphics m_Graphics;
@@ -47,7 +48,7 @@ namespace FoosballAngles
         Brush greenBrush = new SolidBrush(Color.DarkGreen);
         Brush yellowBrush = new SolidBrush(Color.Goldenrod);
         Brush BisqueBrush = new SolidBrush(Color.Tomato);
-        Brush goalBrush = new SolidBrush(Color.BlueViolet);
+        Brush goalBrush = new SolidBrush(Color.Magenta);
 
         public Bitmap Bmp { get; private set; }
 
@@ -60,15 +61,15 @@ namespace FoosballAngles
 
         private void ResetPlayers()
         {
-            pXs = new float[] { 380, 380, 380,  // attack
-                680, 680, 680, 680, 680,        // midfield
-                980, 980,                       // defence
-                1130                             //keeper
+            pXs = new float[] { 370, 370, 370,  // attack
+                670, 670, 670, 670, 670,        // midfield
+                970, 970,                       // defence
+                1120                             //keeper
             };
 
-            pYs = new float[] { 50, 250, 450,  // attack
-                50, 170, 290, 410, 530,        // midfield
-                50, 290,                       // defence
+            pYs = new float[] { 0, 207, 207 * 2, // attack
+                0, 119, 119 *2, 119 *3, 119 *4, // midfield
+                0, 239,                         // defence
                 220                             //keeper
             };
         }
@@ -83,12 +84,12 @@ namespace FoosballAngles
             List<PolePosition> polePositions = new List<PolePosition>();
             Random r = new Random();
 
-            for (int i = 0; i < 200; i++)
+            for (int i = 0; i < 100; i++)
             {
                 PolePosition pp = new PolePosition();
-                pp.PosAttack += (float)(r.NextDouble() * 250);
-                pp.PosMidfield += (float)(r.NextDouble() * 200);
-                pp.PosDefence += (float)(r.NextDouble() * 300);
+                pp.PosAttack += (float)(r.NextDouble() * 210) + 36;
+                pp.PosMidfield += (float)(r.NextDouble() * 120) + 36;
+                pp.PosDefence += (float)(r.NextDouble() * 240) + 36;
                 pp.PosGoalie += (float)(r.NextDouble() * 250);
 
                 polePositions.Add(pp);
@@ -105,9 +106,10 @@ namespace FoosballAngles
         {
             float startX = 220f;
             float endX = TableLength;
-            float yStepSize = 3f;
+            float yStepSize = 2f;
 
             int score = 0;
+            int[] shotScores = new int[400];
 
             if (draw)
                 yStepSize = 1f;
@@ -121,21 +123,23 @@ namespace FoosballAngles
             for (int i = 8; i < 10; i++)
                 pYs[i] += pp.PosDefence;
             pYs[10] += pp.PosGoalie;
-    
+
             for (float startY = 30; startY < TableWidth / 2f; startY += yStepSize)
             {
-                for (float endY = (TableWidth - GoalWidth) / 2f; endY < (TableWidth + GoalWidth) / 2f; endY += yStepSize)
+                for (float endY = ((TableWidth - GoalWidth) + BallGoInWidth) / 2f; endY < ((TableWidth + GoalWidth) - BallGoInWidth) / 2f; endY += yStepSize)
                 {
                     bool pathClear = IsPathClear(startX, startY, endX, endY);
                     if (pathClear)
                     {
-                        if(draw)
-                        m_Graphics.DrawLine(new Pen(yellowBrush), startX, startY, endX - 8, endY);
+                        if (draw)
+                            m_Graphics.DrawLine(new Pen(yellowBrush), startX, startY, endX - 8, endY);
                         score++;
+                        shotScores[(int)startY]++;
                     }
                 }
             }
 
+            //return shotScores.Max();
             return score;
         }
 
@@ -149,7 +153,7 @@ namespace FoosballAngles
         private void RenderPlayers()
         {
             for (int i = 0; i < pNum; i++)
-                m_Graphics.FillRectangle(BisqueBrush, (int) pXs[i], (int) pYs[i], (int) PlayerDepth, (int) PlayerWidth);
+                m_Graphics.FillRectangle(BisqueBrush, (int)pXs[i], (int)pYs[i], (int)PlayerDepth, (int)PlayerWidth);
         }
 
 
@@ -168,7 +172,7 @@ namespace FoosballAngles
 
         private bool DoesRayHitAnyPlayers(float startX, float startY, float endX, float endY)
         {
-            const float xStepSize = 2f;
+            const float xStepSize = 3f;
             float gradient = (endY - startY) / (endX - startX);
             float y = startY;
 
@@ -177,7 +181,7 @@ namespace FoosballAngles
                 y += gradient * xStepSize;
 
                 //m_Graphics.FillRectangle(yellowBrush, x, y, 1, 1);
-                for (int p = 0; p < pNum; p++)
+                for (int p = 3; p < pNum; p++)
                 {
                     if (IsInPlayerRectangle(p, x, y))
                         return true;
